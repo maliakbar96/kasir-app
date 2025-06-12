@@ -1,0 +1,120 @@
+<!-- FILE: templates/index.html dengan tombol Edit dan Hapus langsung + toggle daftar produk -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kasir ATK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5; padding: 20px; margin: 0; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2, h3 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #f0f8ff; }
+        input, select, button { padding: 10px; margin-top: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; width: 100%; }
+        .produk-row { display: flex; gap: 10px; }
+        .produk-row select, .produk-row input { flex: 1; }
+        .btn { padding: 10px; margin: 5px 0; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .kembalian { font-weight: bold; color: green; }
+        .error { color: red; font-weight: bold; }
+        .manual-row { display: flex; gap: 10px; margin-top: 10px; }
+        .manual-row input { flex: 1; }
+        .total-harus-bayar { font-weight: bold; color: blue; margin-top: 10px; }
+        .toggle-btn { background-color: #17a2b8; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Kasir ATK</h2>
+    <form method="POST">
+        <h3>Transaksi Produk</h3>
+        <div id="produk-container">
+            <div class="produk-row">
+                <select name="produk[]">
+                    {% for produk in produk_list %}
+                        <option value="{{ produk.nama }}">{{ produk.nama }} - Rp{{ produk.harga }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="jumlah[]" placeholder="Jumlah" required>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="tambahBarang()">+ Tambah Produk</button>
+
+        <h3>Input Manual</h3>
+        <div id="manual-container">
+            <div class="manual-row">
+                <input type="text" name="manual_nama[]" placeholder="Nama Produk">
+                <input type="number" name="manual_harga[]" placeholder="Harga">
+                <input type="number" name="manual_jumlah[]" placeholder="Jumlah">
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" onclick="tambahManual()">+ Tambah Manual</button>
+
+        {% if total_tagihan is defined %}
+            <div class="total-harus-bayar">Total Harus Dibayar: Rp{{ total_tagihan }}</div>
+        {% endif %}
+
+        <input type="number" name="bayar" placeholder="Uang Bayar" required>
+        <button type="submit" class="btn btn-primary">Proses Transaksi</button>
+    </form>
+
+    {% if kembalian is not none %}
+        <div class="kembalian">Kembalian: Rp{{ kembalian }}</div>
+    {% endif %}
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <hr>
+    <button class="toggle-btn" onclick="toggleProduk()">Lihat/Sembunyikan Daftar Produk</button>
+    <div id="produk-list" style="display: none;">
+        <h3>Daftar Produk</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Produk</th>
+                    <th>Harga</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produk in produk_list %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ produk.nama }}</td>
+                    <td>Rp{{ produk.harga }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_produk', idx=loop.index0) }}">Edit</a> |
+                        <a href="{{ url_for('hapus_produk', idx=loop.index0) }}" onclick="return confirm('Hapus produk ini?')">Hapus</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function tambahBarang() {
+        const container = document.getElementById('produk-container');
+        const row = container.firstElementChild.cloneNode(true);
+        row.querySelector('input').value = '';
+        container.appendChild(row);
+    }
+    function tambahManual() {
+        const container = document.getElementById('manual-container');
+        const row = container.firstElementChild.cloneNode(true);
+        row.querySelectorAll('input').forEach(input => input.value = '');
+        container.appendChild(row);
+    }
+    function toggleProduk() {
+        const section = document.getElementById('produk-list');
+        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+</body>
+</html>
